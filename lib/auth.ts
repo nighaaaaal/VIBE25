@@ -271,3 +271,93 @@ export const verifyCode = (email: string, inputCode: string): boolean => {
 
   return isValid
 }
+
+// Generate profile avatar colors
+export const getProfileColor = (name: string): string => {
+  const colors = [
+    "#4ade80",
+    "#60a5fa",
+    "#f472b6",
+    "#fb7185",
+    "#fbbf24",
+    "#a78bfa",
+    "#34d399",
+    "#fcd34d",
+    "#f87171",
+    "#818cf8",
+  ]
+  const index = name.charCodeAt(0) % colors.length
+  return colors[index]
+}
+
+// Get initials from name or email
+export const getInitials = (name: string): string => {
+  if (!name) return "U"
+  const parts = name.split(" ")
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+}
+
+// Posts management
+export const savePosts = (posts: any[]) => {
+  localStorage.setItem("learnio_posts", JSON.stringify(posts))
+}
+
+export const getPosts = (): any[] => {
+  if (typeof window === "undefined") return []
+
+  const postsString = localStorage.getItem("learnio_posts")
+  if (postsString) {
+    try {
+      return JSON.parse(postsString)
+    } catch (error) {
+      console.error("Error parsing posts data:", error)
+      return []
+    }
+  }
+  return []
+}
+
+export const addPost = (postData: any) => {
+  const existingPosts = getPosts()
+  const newPost = {
+    id: Date.now(),
+    ...postData,
+    timeAgo: "Just now",
+    likes: 0,
+    comments: 0,
+    timestamp: new Date().toISOString(),
+  }
+  const updatedPosts = [newPost, ...existingPosts]
+  savePosts(updatedPosts)
+  return newPost
+}
+
+// Notifications management
+export const getNotifications = () => {
+  if (typeof window === "undefined") return []
+
+  const notificationsString = localStorage.getItem("learnio_notifications")
+  if (notificationsString) {
+    try {
+      return JSON.parse(notificationsString)
+    } catch (error) {
+      return []
+    }
+  }
+  return []
+}
+
+export const saveNotifications = (notifications: any[]) => {
+  localStorage.setItem("learnio_notifications", JSON.stringify(notifications))
+}
+
+export const markNotificationAsRead = (notificationId: number) => {
+  const notifications = getNotifications()
+  const updatedNotifications = notifications.map((notif: any) =>
+    notif.id === notificationId ? { ...notif, read: true } : notif,
+  )
+  saveNotifications(updatedNotifications)
+}
