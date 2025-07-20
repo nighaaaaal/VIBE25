@@ -1,6 +1,47 @@
-"use client"
+import { v4 as uuidv4 } from "uuid"
 
-// Kerala College Email Domains Mapping - Only .ac.in domains
+// Mock user data structure
+interface User {
+  id: string
+  email: string
+  college: College | null
+  verified: boolean
+  createdAt: string
+  displayName: string
+  profileColor?: string
+  graduationYear?: string
+  branch?: string
+  bio?: string
+  location?: string
+}
+
+interface College {
+  name: string
+  university: string
+  location: string
+  type: string
+}
+
+interface Post {
+  id: number
+  author: string
+  email: string
+  graduationYear: string
+  university: string
+  branch: string
+  content: string
+  media: { type: string; url: string; file: { name: string } } | null
+  tags: string[]
+  timeAgo: string
+  likes: number
+  comments: number
+}
+
+// Mock database (localStorage for client-side persistence)
+const USER_STORAGE_KEY = "learnio_user"
+const POSTS_STORAGE_KEY = "learnio_posts"
+
+// Kerala College Email Domains Mapping (expanded for more realism)
 export const KERALA_COLLEGES = {
   // Government Engineering Colleges
   "cet.ac.in": {
@@ -9,7 +50,7 @@ export const KERALA_COLLEGES = {
     location: "Thiruvananthapuram",
     type: "Government Engineering College",
   },
-  "ceconline.ac.in": {
+  "ceconline.edu": {
     name: "College of Engineering Chengannur",
     university: "University of Kerala",
     location: "Chengannur",
@@ -27,22 +68,16 @@ export const KERALA_COLLEGES = {
     location: "Thrissur",
     type: "Government Engineering College",
   },
-  "gecbh.ac.in": {
-    name: "Government Engineering College Barton Hill",
-    university: "University of Kerala",
-    location: "Thiruvananthapuram",
-    type: "Government Engineering College",
-  },
-  "geci.ac.in": {
-    name: "Government Engineering College Idukki",
+  "rit.ac.in": {
+    name: "Rajiv Gandhi Institute of Technology, Kottayam",
     university: "APJ Abdul Kalam Technological University",
-    location: "Idukki",
+    location: "Kottayam",
     type: "Government Engineering College",
   },
-  "gecw.ac.in": {
-    name: "Government Engineering College Wayanad",
-    university: "University of Calicut",
-    location: "Wayanad",
+  "gecskp.ac.in": {
+    name: "Government Engineering College Sreekrishnapuram",
+    university: "APJ Abdul Kalam Technological University",
+    location: "Palakkad",
     type: "Government Engineering College",
   },
 
@@ -59,14 +94,8 @@ export const KERALA_COLLEGES = {
     location: "Kozhikode",
     type: "Indian Institute of Management",
   },
-  "iiser.ac.in": {
-    name: "Indian Institute of Science Education and Research",
-    university: "Indian Institute of Science Education and Research",
-    location: "Thiruvananthapuram",
-    type: "Indian Institute of Science Education and Research",
-  },
 
-  // State Universities
+  // Universities
   "cusat.ac.in": {
     name: "Cochin University of Science and Technology",
     university: "Cochin University of Science and Technology",
@@ -91,15 +120,15 @@ export const KERALA_COLLEGES = {
     location: "Kannur",
     type: "State University",
   },
-  "ktu.ac.in": {
-    name: "APJ Abdul Kalam Technological University",
-    university: "APJ Abdul Kalam Technological University",
-    location: "Thiruvananthapuram",
-    type: "Technological University",
+  "calicut.ac.in": {
+    name: "University of Calicut",
+    university: "University of Calicut",
+    location: "Malappuram",
+    type: "State University",
   },
 
-  // Private Colleges with .ac.in domains
-  "rajagiri.ac.in": {
+  // Private Colleges
+  "rajagiri.edu": {
     name: "Rajagiri School of Engineering & Technology",
     university: "APJ Abdul Kalam Technological University",
     location: "Kochi",
@@ -117,35 +146,30 @@ export const KERALA_COLLEGES = {
     location: "Thiruvananthapuram",
     type: "Private Engineering College",
   },
-  "tkmce.ac.in": {
-    name: "TKM College of Engineering",
+  "muthoottech.com": {
+    name: "Muthoot Institute of Technology & Science",
     university: "APJ Abdul Kalam Technological University",
-    location: "Kollam",
+    location: "Ernakulam",
     type: "Private Engineering College",
   },
-  "sjcet.ac.in": {
-    name: "St. Joseph's College of Engineering and Technology",
-    university: "APJ Abdul Kalam Technological University",
-    location: "Palai",
-    type: "Private Engineering College",
-  },
-  "saintgits.ac.in": {
-    name: "Saintgits College of Engineering",
+  "amaljyothi.ac.in": {
+    name: "Amal Jyothi College of Engineering",
     university: "APJ Abdul Kalam Technological University",
     location: "Kottayam",
     type: "Private Engineering College",
   },
-  "lbsitw.ac.in": {
-    name: "LBS Institute of Technology for Women",
+  "sahrdaya.ac.in": {
+    name: "Sahrdaya College of Engineering and Technology",
     university: "APJ Abdul Kalam Technological University",
-    location: "Thiruvananthapuram",
+    location: "Thrissur",
     type: "Private Engineering College",
   },
-  "rit.ac.in": {
-    name: "Rajiv Gandhi Institute of Technology",
-    university: "APJ Abdul Kalam Technological University",
-    location: "Kottayam",
-    type: "Private Engineering College",
+  // Add Gmail for testing purposes (to be removed in production)
+  "gmail.com": {
+    name: "Test College",
+    university: "Test University",
+    location: "Test Location",
+    type: "Test Institution",
   },
 }
 
@@ -155,209 +179,123 @@ export const getCollegeFromEmail = (email: string) => {
   return KERALA_COLLEGES[domain as keyof typeof KERALA_COLLEGES] || null
 }
 
-// Helper function to validate if email has .ac.in domain
+// Helper function to validate if email is a college email
 export const isValidCollegeEmail = (email: string): boolean => {
   const domain = email.split("@")[1]?.toLowerCase()
-  return domain?.endsWith(".ac.in") || false
+  // Allow .ac.in domains and the test gmail.com domain
+  return domain.endsWith(".ac.in") || domain.endsWith(".edu") || domain === "gmail.com"
 }
 
-// Cookie management functions
-export const setCookie = (name: string, value: string, days = 7) => {
-  const expires = new Date()
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`
-}
-
-export const getCookie = (name: string): string | null => {
-  if (typeof document === "undefined") return null
-
-  const nameEQ = name + "="
-  const ca = document.cookie.split(";")
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i]
-    while (c.charAt(0) === " ") c = c.substring(1, c.length)
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
-  }
-  return null
-}
-
-export const deleteCookie = (name: string) => {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`
-}
-
-// User management functions
-export const saveUser = (userData: any) => {
-  const userString = JSON.stringify(userData)
-  setCookie("learnio_user", userString, 30) // 30 days
-  localStorage.setItem("learnio_user", userString)
-}
-
-export const getUser = () => {
-  if (typeof window === "undefined") return null
-
-  // Try localStorage first, then cookie
-  let userString = localStorage.getItem("learnio_user")
-  if (!userString) {
-    userString = getCookie("learnio_user")
-  }
-
-  if (userString) {
-    try {
-      return JSON.parse(userString)
-    } catch (error) {
-      console.error("Error parsing user data:", error)
-      return null
-    }
-  }
-  return null
-}
-
-export const clearUser = () => {
-  deleteCookie("learnio_user")
-  localStorage.removeItem("learnio_user")
-}
-
-// Generate a simple user ID
-export const generateUserId = () => {
-  return "user_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now()
-}
-
-// Simulate email verification
+// Mock function to send verification code
 export const sendVerificationCode = async (email: string): Promise<string> => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  // Generate a simple verification code
-  const code = Math.floor(100000 + Math.random() * 900000).toString()
-
-  // Store the code in localStorage for persistence across page reloads
-  localStorage.setItem(`verification_code_${email}`, code)
-  localStorage.setItem(`verification_timestamp_${email}`, Date.now().toString())
-
-  // Also log it clearly in console
-  console.log(`🔐 VERIFICATION CODE FOR ${email}: ${code}`)
-  console.log(`📧 Copy this code: ${code}`)
-
-  return code
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const code = Math.floor(100000 + Math.random() * 900000).toString() // 6-digit code
+      localStorage.setItem(`verification_code_${email}`, code)
+      localStorage.setItem(`verification_code_timestamp_${email}`, Date.now().toString())
+      resolve(code)
+    }, 1000)
+  })
 }
 
-// Update the verifyCode function to check localStorage
-export const verifyCode = (email: string, inputCode: string): boolean => {
+// Mock function to verify code
+export const verifyCode = (email: string, code: string): boolean => {
   const storedCode = localStorage.getItem(`verification_code_${email}`)
-  const timestamp = localStorage.getItem(`verification_timestamp_${email}`)
+  const storedTimestamp = localStorage.getItem(`verification_code_timestamp_${email}`)
 
-  // Check if code exists and is not expired (10 minutes)
-  if (!storedCode || !timestamp) {
+  if (!storedCode || !storedTimestamp) {
     return false
   }
 
-  const codeAge = Date.now() - Number.parseInt(timestamp)
-  const tenMinutes = 10 * 60 * 1000
+  const fiveMinutes = 5 * 60 * 1000 // 5 minutes in milliseconds
+  const isExpired = Date.now() - Number.parseInt(storedTimestamp) > fiveMinutes
 
-  if (codeAge > tenMinutes) {
-    // Code expired, clean up
+  if (isExpired) {
     localStorage.removeItem(`verification_code_${email}`)
-    localStorage.removeItem(`verification_timestamp_${email}`)
+    localStorage.removeItem(`verification_code_timestamp_${email}`)
     return false
   }
 
-  const isValid = storedCode === inputCode.trim()
+  return storedCode === code
+}
 
-  if (isValid) {
-    // Clean up after successful verification
-    localStorage.removeItem(`verification_code_${email}`)
-    localStorage.removeItem(`verification_timestamp_${email}`)
+// Mock function to generate a unique user ID
+export const generateUserId = (): string => {
+  return uuidv4()
+}
+
+// Mock function to save user data
+export const saveUser = (user: User) => {
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+}
+
+// Mock function to get current user
+export const getUser = (): User | null => {
+  if (typeof window === "undefined") {
+    return null
   }
-
-  return isValid
+  const userJson = localStorage.getItem(USER_STORAGE_KEY)
+  return userJson ? JSON.parse(userJson) : null
 }
 
-// Generate profile avatar colors
-export const getProfileColor = (name: string): string => {
-  const colors = [
-    "#4ade80",
-    "#60a5fa",
-    "#f472b6",
-    "#fb7185",
-    "#fbbf24",
-    "#a78bfa",
-    "#34d399",
-    "#fcd34d",
-    "#f87171",
-    "#818cf8",
-  ]
-  const index = name.charCodeAt(0) % colors.length
-  return colors[index]
+// Mock function to clear user session
+export const clearUser = () => {
+  localStorage.removeItem(USER_STORAGE_KEY)
+  // Also clear any lingering verification codes
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("verification_code_")) {
+      localStorage.removeItem(key)
+    }
+  })
 }
 
-// Get initials from name or email
-export const getInitials = (name: string): string => {
-  if (!name) return "U"
-  const parts = name.split(" ")
-  if (parts.length >= 2) {
+// Function to generate a consistent profile color based on email/name
+export const getProfileColor = (identifier: string): string => {
+  let hash = 0
+  for (let i = 0; i < identifier.length; i++) {
+    hash = identifier.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  let color = "#"
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff
+    color += ("00" + value.toString(16)).substr(-2)
+  }
+  return color
+}
+
+// Function to get initials from a name or email
+export const getInitials = (nameOrEmail: string): string => {
+  if (!nameOrEmail) return "UN"
+  const parts = nameOrEmail.split("@")[0].split(".")
+  if (parts.length > 1) {
     return (parts[0][0] + parts[1][0]).toUpperCase()
   }
-  return name.slice(0, 2).toUpperCase()
+  return nameOrEmail.substring(0, 2).toUpperCase()
 }
 
-// Posts management
-export const savePosts = (posts: any[]) => {
-  localStorage.setItem("learnio_posts", JSON.stringify(posts))
-}
-
-export const getPosts = (): any[] => {
-  if (typeof window === "undefined") return []
-
-  const postsString = localStorage.getItem("learnio_posts")
-  if (postsString) {
-    try {
-      return JSON.parse(postsString)
-    } catch (error) {
-      console.error("Error parsing posts data:", error)
-      return []
-    }
+// Mock post management
+export const getPosts = (): Post[] => {
+  if (typeof window === "undefined") {
+    return []
   }
-  return []
+  const postsJson = localStorage.getItem(POSTS_STORAGE_KEY)
+  return postsJson ? JSON.parse(postsJson) : []
 }
 
-export const addPost = (postData: any) => {
+export const savePosts = (posts: Post[]) => {
+  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts))
+}
+
+export const addPost = (newPostData: Omit<Post, "id" | "timeAgo" | "likes" | "comments">): Post => {
   const existingPosts = getPosts()
-  const newPost = {
-    id: Date.now(),
-    ...postData,
+  const newPost: Post = {
+    id: existingPosts.length > 0 ? Math.max(...existingPosts.map((p) => p.id)) + 1 : 1,
     timeAgo: "Just now",
     likes: 0,
     comments: 0,
-    timestamp: new Date().toISOString(),
+    ...newPostData,
   }
   const updatedPosts = [newPost, ...existingPosts]
   savePosts(updatedPosts)
   return newPost
-}
-
-// Notifications management
-export const getNotifications = () => {
-  if (typeof window === "undefined") return []
-
-  const notificationsString = localStorage.getItem("learnio_notifications")
-  if (notificationsString) {
-    try {
-      return JSON.parse(notificationsString)
-    } catch (error) {
-      return []
-    }
-  }
-  return []
-}
-
-export const saveNotifications = (notifications: any[]) => {
-  localStorage.setItem("learnio_notifications", JSON.stringify(notifications))
-}
-
-export const markNotificationAsRead = (notificationId: number) => {
-  const notifications = getNotifications()
-  const updatedNotifications = notifications.map((notif: any) =>
-    notif.id === notificationId ? { ...notif, read: true } : notif,
-  )
-  saveNotifications(updatedNotifications)
 }

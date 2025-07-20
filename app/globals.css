@@ -2,82 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* AMOLED Theme with VSCode Colors */
-  --background: 0 0% 0%; /* Pure black for AMOLED */
-  --foreground: 210 11% 85%; /* Light gray text */
-  --card: 220 13% 8%; /* Dark card background */
-  --card-foreground: 210 11% 85%;
-  --popover: 220 13% 8%;
-  --popover-foreground: 210 11% 85%;
-  --primary: 142 76% 36%; /* #4ade80 green */
-  --primary-foreground: 0 0% 0%;
-  --secondary: 217 19% 15%; /* VSCode sidebar */
-  --secondary-foreground: 210 11% 85%;
-  --muted: 217 19% 12%;
-  --muted-foreground: 215 14% 65%;
-  --accent: 142 76% 36%;
-  --accent-foreground: 0 0% 0%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 217 19% 15%;
-  --input: 217 19% 15%;
-  --ring: 142 76% 36%;
-  --radius: 0.5rem;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
-  /* VSCode specific colors */
-  --vscode-bg: 220 13% 8%;
-  --vscode-sidebar: 217 19% 15%;
-  --vscode-selection: 210 100% 60%;
-  --vscode-comment: 101 14% 40%;
-  --vscode-string: 95 38% 62%;
-  --vscode-keyword: 207 82% 66%;
-  --vscode-function: 221 87% 60%;
-  --vscode-variable: 142 76% 36%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 0 0% 98%;
+  }
+
+  /* AMOLED Dark Theme */
+  .dark.amoled {
+    --background: 0 0% 0%; /* Pure black for AMOLED */
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 5%; /* Slightly off-black for cards */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 10%; /* Darker secondary */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 98%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-black text-foreground;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-black;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-700 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-600;
+    @apply bg-background text-foreground;
   }
 }
 
-@layer components {
-  .floating-card {
-    @apply bg-gray-900/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl rounded-xl;
-  }
+/* Custom styles for the dashboard */
+.profile-avatar {
+  @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0;
+}
 
-  .glass-effect {
-    @apply bg-gray-900/80 backdrop-blur-md border border-gray-800/30;
-  }
+.glass-effect {
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  backdrop-filter: blur(10px); /* Blur effect */
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
+}
 
-  .neon-glow {
-    box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
-  }
+.floating-card {
+  @apply bg-card/60 backdrop-blur-md border border-gray-800 shadow-lg;
+}
 
-  .profile-avatar {
-    @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-black;
-  }
+.neon-glow {
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.7), 0 0 10px rgba(0, 255, 0, 0.5), 0 0 15px rgba(0, 255, 0, 0.3);
 }
