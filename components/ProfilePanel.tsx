@@ -1,93 +1,138 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { MapPin, Mail, GraduationCap, Briefcase, X } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { X, MapPin, Calendar, Users, BookOpen, Award, ExternalLink } from "lucide-react"
 import { getProfileColor, getInitials } from "@/lib/auth"
 
 interface ProfilePanelProps {
-  user: {
-    id: string
-    name?: string
-    email: string
-    graduationYear?: string
-    branch?: string
-    bio?: string
-    location?: string
-    college?: {
-      name: string
-      university: string
-      location: string
-      type: string
-    }
-    displayName?: string
-  }
+  user: any
   onClose: () => void
 }
 
 export default function ProfilePanel({ user, onClose }: ProfilePanelProps) {
-  const displayName = user.name || user.displayName || user.email.split("@")[0]
-  const profileColor = getProfileColor(user.email)
-  const initials = getInitials(displayName)
+  const profileColor = getProfileColor(user.name || user.email)
+  const initials = getInitials(user.name || user.email.split("@")[0])
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border-gray-700">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-gray-100 flex items-center">User Profile</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-gray-100">
-            <X className="w-5 h-5" />
-          </Button>
-        </DialogHeader>
-        <div className="flex flex-col items-center p-6">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold mb-4"
-            style={{ backgroundColor: profileColor }}
-          >
-            {initials}
-          </div>
-          <h2 className="text-2xl font-bold text-gray-100 mb-1">{displayName}</h2>
-          <p className="text-gray-400 text-sm mb-4">{user.email}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <Card className="floating-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="relative">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600/20 to-green-500/20 p-6 rounded-t-xl">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white hover:bg-white/20"
+            >
+              <X className="w-4 h-4" />
+            </Button>
 
-          <div className="grid grid-cols-1 gap-3 w-full max-w-xs">
-            {user.college && (
-              <div className="flex items-center text-gray-300">
-                <GraduationCap className="w-5 h-5 mr-2 text-green-400" />
-                <span>{user.college.name}</span>
+            <div className="flex items-start space-x-4">
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-black"
+                style={{ backgroundColor: profileColor }}
+              >
+                {initials}
               </div>
-            )}
-            {user.graduationYear && (
-              <div className="flex items-center text-gray-300">
-                <Briefcase className="w-5 h-5 mr-2 text-blue-400" />
-                <span>Graduation: {user.graduationYear}</span>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-white mb-1">{user.name || user.email.split("@")[0]}</h2>
+                <p className="text-gray-300 mb-2">{user.bio || "Student"}</p>
+                <div className="flex items-center space-x-4 text-sm text-gray-400">
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{user.location}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{user.graduationYear}</span>
+                  </div>
+                </div>
               </div>
-            )}
-            {user.branch && (
-              <div className="flex items-center text-gray-300">
-                <Mail className="w-5 h-5 mr-2 text-purple-400" />
-                <span>Branch: {user.branch}</span>
-              </div>
-            )}
-            {user.location && (
-              <div className="flex items-center text-gray-300">
-                <MapPin className="w-5 h-5 mr-2 text-red-400" />
-                <span>{user.location}</span>
-              </div>
-            )}
-          </div>
-
-          {user.bio && (
-            <div className="mt-6 p-4 bg-gray-800 rounded-lg w-full">
-              <h3 className="font-semibold text-gray-100 mb-2">Bio</h3>
-              <p className="text-gray-300 text-sm">{user.bio}</p>
             </div>
-          )}
+          </div>
 
-          <div className="mt-6 w-full flex justify-center">
-            <Button className="bg-green-500 hover:bg-green-600 text-black">Connect</Button>
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{user.projects || 0}</div>
+                <div className="text-sm text-gray-400">Projects</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{user.connections || 0}</div>
+                <div className="text-sm text-gray-400">Connections</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{user.semester || "N/A"}</div>
+                <div className="text-sm text-gray-400">Semester</div>
+              </div>
+            </div>
+
+            {/* Education */}
+            <div>
+              <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center">
+                <BookOpen className="w-5 h-5 mr-2" />
+                Education
+              </h3>
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <h4 className="font-medium text-white">{user.university}</h4>
+                <p className="text-gray-300">{user.branch}</p>
+                <p className="text-sm text-gray-400">{user.graduationYear}</p>
+              </div>
+            </div>
+
+            {/* Skills */}
+            {user.skills && (
+              <div>
+                <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center">
+                  <Award className="w-5 h-5 mr-2" />
+                  Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map((skill: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="bg-gray-800 text-gray-300">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Interests */}
+            {user.interests && (
+              <div>
+                <h3 className="text-lg font-semibold text-green-400 mb-3">Interests</h3>
+                <div className="flex flex-wrap gap-2">
+                  {user.interests.map((interest: string, index: number) => (
+                    <Badge key={index} variant="outline" className="border-green-400 text-green-400">
+                      {interest}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact */}
+            <div className="flex space-x-3">
+              <Button className="flex-1 bg-green-500 hover:bg-green-600 text-black">
+                <Users className="w-4 h-4 mr-2" />
+                Connect
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Message
+              </Button>
+            </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Card>
+    </div>
   )
 }

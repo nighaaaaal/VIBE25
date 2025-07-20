@@ -10,18 +10,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-slider": "^1.2.0",
-    "@radix-ui/react-slot": "^1.1.0",
-    "@radix-ui/react-switch": "^1.1.0",
-    "@radix-ui/react-tabs": "^1.1.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "jszip": "^3.10.1",
+    "firebase": "latest",
+    "jszip": "latest",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
     "postcss": "^8",
@@ -30,8 +26,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5",
-    "uuid": "latest"
+    "typescript": "^5"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",

@@ -1,8 +1,8 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { LogOut } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { AlertTriangle, LogOut, X } from "lucide-react"
 
 interface LogoutConfirmationProps {
   onConfirm: () => void
@@ -11,31 +11,34 @@ interface LogoutConfirmationProps {
 
 export default function LogoutConfirmation({ onConfirm, onCancel }: LogoutConfirmationProps) {
   return (
-    <Dialog open onOpenChange={onCancel}>
-      <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border-gray-700">
-        <DialogHeader className="text-center">
-          <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <LogOut className="w-6 h-6 text-white" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <Card className="floating-card w-full max-w-md p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
-          <DialogTitle className="text-gray-100 text-2xl">Confirm Logout</DialogTitle>
-        </DialogHeader>
-        <div className="text-center text-gray-300 py-4">
-          <p>Are you sure you want to log out?</p>
-          <p>You will need to verify your college email again to log back in.</p>
+
+          <h3 className="text-xl font-semibold text-white mb-2">Sign Out</h3>
+          <p className="text-gray-400 mb-6">
+            Are you sure you want to sign out? You'll need to verify your email again to log back in.
+          </p>
+
+          <div className="flex space-x-3">
+            <Button
+              onClick={onCancel}
+              variant="outline"
+              className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={onConfirm} className="flex-1 bg-red-500 hover:bg-red-600 text-white">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
-        <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="w-full sm:w-auto border-gray-700 text-gray-100 hover:bg-gray-800 bg-transparent"
-          >
-            Cancel
-          </Button>
-          <Button onClick={onConfirm} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white">
-            Log Out
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </Card>
+    </div>
   )
 }

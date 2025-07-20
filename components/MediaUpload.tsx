@@ -4,117 +4,120 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ImageIcon, Video, FileText, Upload, X } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { X, Upload, ImageIcon, Video, FileText } from "lucide-react"
 
 interface MediaUploadProps {
+  onMediaSelect: (media: { type: string; file: File; preview: string }) => void
   onClose: () => void
-  onMediaSelect: (media: { type: string; url: string; file: File }) => void
 }
 
-export default function MediaUpload({ onClose, onMediaSelect }: MediaUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [mediaType, setMediaType] = useState<string | null>(null)
+export default function MediaUpload({ onMediaSelect, onClose }: MediaUploadProps) {
+  const [dragActive, setDragActive] = useState(false)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-
-      if (file.type.startsWith("image/")) {
-        setMediaType("image")
-      } else if (file.type.startsWith("video/")) {
-        setMediaType("video")
-      } else {
-        setMediaType("file")
-      }
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
     }
   }
 
-  const handleUpload = () => {
-    if (selectedFile && mediaType && previewUrl) {
-      onMediaSelect({ type: mediaType, url: previewUrl, file: selectedFile })
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0])
+    }
+  }
+
+  const handleFile = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const preview = e.target?.result as string
+      let type = "file"
+
+      if (file.type.startsWith("image/")) type = "image"
+      else if (file.type.startsWith("video/")) type = "video"
+
+      onMediaSelect({ type, file, preview })
       onClose()
     }
-  }
-
-  const clearSelection = () => {
-    setSelectedFile(null)
-    setPreviewUrl(null)
-    setMediaType(null)
+    reader.readAsDataURL(file)
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border-gray-700">
-        <DialogHeader>
-          <DialogTitle className="text-gray-100">Upload Media</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {!selectedFile ? (
-            <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-700 rounded-lg text-gray-400">
-              <Upload className="w-8 h-8 mb-3" />
-              <Label htmlFor="file-upload" className="cursor-pointer text-blue-400 hover:underline">
-                Click to upload
-              </Label>
-              <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} />
-              <p className="text-sm mt-1">or drag and drop</p>
-              <p className="text-xs mt-1">(Image, Video, or Document)</p>
-            </div>
-          ) : (
-            <div className="relative p-4 border border-gray-700 rounded-lg bg-gray-800">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 text-gray-400 hover:text-red-400"
-                onClick={clearSelection}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-              <div className="flex items-center space-x-3">
-                {mediaType === "image" && <ImageIcon className="w-6 h-6 text-green-400" />}
-                {mediaType === "video" && <Video className="w-6 h-6 text-blue-400" />}
-                {mediaType === "file" && <FileText className="w-6 h-6 text-purple-400" />}
-                <div className="flex-1">
-                  <p className="font-medium text-gray-100 truncate">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-              </div>
-              {previewUrl && mediaType === "image" && (
-                <img
-                  src={previewUrl || "/placeholder.svg"}
-                  alt="Preview"
-                  className="mt-4 max-h-48 w-full object-contain rounded-md"
-                />
-              )}
-              {previewUrl && mediaType === "video" && (
-                <video src={previewUrl} controls className="mt-4 max-h-48 w-full object-contain rounded-md" />
-              )}
-            </div>
-          )}
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="border-gray-700 text-gray-100 hover:bg-gray-800 bg-transparent"
-          >
-            Cancel
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <Card className="floating-card w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-green-400">Upload Media</h3>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-4 h-4" />
           </Button>
+        </div>
+
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive ? "border-green-400 bg-green-400/10" : "border-gray-600 hover:border-gray-500"
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-300 mb-2">Drag and drop files here</p>
+          <p className="text-sm text-gray-500 mb-4">or click to browse</p>
+
+          <input
+            type="file"
+            id="file-upload"
+            className="hidden"
+            accept="image/*,video/*,.pdf,.doc,.docx"
+            onChange={handleFileInput}
+          />
+
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center p-3 rounded-lg border border-gray-600 hover:border-green-400 hover:bg-green-400/10 transition-colors">
+                <ImageIcon className="w-6 h-6 text-green-400 mb-1" />
+                <span className="text-xs text-gray-300">Photo</span>
+              </div>
+            </label>
+
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center p-3 rounded-lg border border-gray-600 hover:border-green-400 hover:bg-green-400/10 transition-colors">
+                <Video className="w-6 h-6 text-green-400 mb-1" />
+                <span className="text-xs text-gray-300">Video</span>
+              </div>
+            </label>
+
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center p-3 rounded-lg border border-gray-600 hover:border-green-400 hover:bg-green-400/10 transition-colors">
+                <FileText className="w-6 h-6 text-green-400 mb-1" />
+                <span className="text-xs text-gray-300">Document</span>
+              </div>
+            </label>
+          </div>
+
           <Button
-            onClick={handleUpload}
-            disabled={!selectedFile}
+            onClick={() => document.getElementById("file-upload")?.click()}
             className="bg-green-500 hover:bg-green-600 text-black"
           >
-            Add Media
+            Choose Files
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </Card>
+    </div>
   )
 }
